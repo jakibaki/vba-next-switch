@@ -21,7 +21,9 @@ int getLightSensorPercentage()
 
     if (R_FAILED(lblInit()))
     {
-        //printf("Couldn't get lightsensor service :/\n");
+        #ifdef NXLINK_STDIO
+        printf("Couldn't get lightsensor service :/\n");
+        #endif
         return 0;
     }
 
@@ -74,47 +76,10 @@ int getLightSensorPercentage()
 
 uint8_t getSensorDarkness()
 {
-    int v = getLightSensorPercentage() / 10;
-    int value = 0;
-    switch (v)
-    {
-    case 0:
-        value = 0x06;
-        break;
-    case 1:
-        value = 0x06;
-        break;
-    case 2:
-        value = 0x0E;
-        break;
-    case 3:
-        value = 0x18;
-        break;
-    case 4:
-        value = 0x20;
-        break;
-    case 5:
-        value = 0x28;
-        break;
-    case 6:
-        value = 0x38;
-        break;
-    case 7:
-        value = 0x48;
-        break;
-    case 8:
-        value = 0x60;
-        break;
-    case 9:
-        value = 0x78;
-        break;
-    case 10:
-        value = 0x98;
-        break;
-    default:
-        value = 0x98;
-        break;
-    }
+    // Returns the sensor darkness in the format that Boktai expects
 
+    // 0xE8 is complete darkness
+    // 
+    int value = getLightSensorPercentage() * 0xA0 / 100;
     return 0xE8 - value;
 }

@@ -1018,12 +1018,7 @@ static INLINE u32 CPUReadHalfWord(u32 address)
 			case 0x80000c4:
 			case 0x80000c6:
 			case 0x80000c8:
-#if USE_MOTION_SENSOR
-				if(hardware.sensor & HARDWARE_SENSOR_GYRO)
-					return gyroRead(address);
-				else
-#endif
-					return rtcRead(address);
+				return rtcRead(address);
 				break;
 			default:
 				value = READ16LE(rom + (address & 0x1FFFFFE)); break;
@@ -1209,11 +1204,6 @@ static INLINE void CPUWriteHalfWord(u32 address, u16 value)
 			case 0x80000c4:
 			case 0x80000c6:
 			case 0x80000c8:
-#if USE_MOTION_SENSOR
-				if(hardware.sensor & HARDWARE_SENSOR_GYRO)
-					gyroWrite(address, value);
-				else
-#endif
 					rtcWrite(address, value);
 				break;
 			}	

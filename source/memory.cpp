@@ -688,6 +688,7 @@ uint16_t rtcRead(uint32_t address)
         }
 
         // Boktai Solar Sensor
+
         if (rtcClockData.byte1 == 0x07) {
             if (rtcClockData.reserved[11] >= getSensorDarkness()) {
                 res |= 8;
@@ -730,11 +731,19 @@ bool rtcWrite(uint32_t address, uint16_t value)
     } else if (address == 0x80000c6) {
         rtcClockData.byte1 = (uint8_t)value; // 0=read/1=write (for each of 4 low bits)
 
+        // rumble is off when not writing to that pin
+        //if (rtcRumbleEnabled && !(value & 8))
+            //systemCartridgeRumble(false);
     } else if (address == 0x80000c4) // 4 bits of I/O Port Data (upper bits not used)
     {
+        // WarioWare Twisted rumble
+        //if (rtcRumbleEnabled && (rtcClockData.byte1 & 0x08)) {
+            //systemCartridgeRumble(value & 8);
+        //}
 
         // Boktai solar sensor
         if (rtcClockData.byte1 == 0x07) {
+			
             if (value & 2) {
                 // reset counter to 0
                 rtcClockData.reserved[11] = 0;
