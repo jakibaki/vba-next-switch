@@ -11,6 +11,7 @@
 
 extern "C" {
 #include "switch/localtime.h"
+#include "switch/lightsensor.h"
 }
 
 /*============================================================
@@ -667,23 +668,51 @@ bool rtcIsEnabled (void)
 	return rtcEnabled;
 }
 
-u16 rtcRead(u32 address)
-{
-	if(rtcEnabled)
-	{
-		switch(address)
-		{
-			case 0x80000c8:
-				return rtcClockData.byte2;
-			case 0x80000c6:
-				return rtcClockData.byte1;
-			case 0x80000c4:
-				return rtcClockData.byte0;
-		}
-	}
 
-	return READ16LE((&rom[address & 0x1FFFFFE]));
+uint16_t rtcRead(uint32_t address)
+{
+    int res = 0;
+
+    switch (address) {
+    case 0x80000c8:
+        return rtcClockData.byte2;
+        break;
+
+    case 0x80000c6:
+        return rtcClockData.byte1;
+        break;
+
+    case 0x80000c4:
+        if (!(rtcClockData.byte2 & 1)) {
+            return 0;
+        }
+
+        // Boktai Solar Sensor
+        if (rtcClockData.byte1 == 0x07) {
+            if (rtcClockData.reserved[11] >= getSensorDarkness()) {
+                res |= 8;
+            }
+        }
+
+        // WarioWare Twisted Tilt Sensor
+        if (rtcClockData.byte1 == 0x0b) {
+            uint16_t v = 0;//systemGetSensorZ();
+            v = 0x6C0 + v;
+            res |= ((v >> rtcClockData.reserved[11]) & 1) << 2;
+        }
+
+        // Real Time Clock
+        if (rtcEnabled && (rtcClockData.byte1 & 0x04)) {
+            res |= rtcClockData.byte0;
+        }
+
+        return res;
+        break;
+    }
+
+    return READ16LE((&rom[address & 0x1FFFFFE]));
 }
+
 
 static u8 toBCD(u8 value)
 {
